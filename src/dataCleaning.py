@@ -3,16 +3,14 @@ import pandas as pd
 import copy
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
+
 
 
 def dataCleaning(dataset):
-    data
     dataX = dataset.drop(['PassengerId', 'Cabin', 'Ticket', 'Fare', 'Parch', 'SibSp'], axis=1)
-    resY = dataX.Survived                       # vector of labels (dependent variable)
+    # vector of labels (dependent variable)
     # remove the dependent variable from the dataframe X
-    dataX = dataX.drop(['Survived'], axis=1)
+    # dataX = dataX.drop(['Survived'], axis=1)
 
     # labelEncoder_X = LabelEncoder()
     dataX.Sex = LabelEncoder().fit_transform(dataX.Sex)
@@ -31,7 +29,6 @@ def dataCleaning(dataset):
     dataX = dataX.drop(['Embarked'], axis=1)
     dataX = pd.concat([dataX, Embarked], axis=1)
 
-
     # -------- Change Name -> Title ----------------------------
     got = dataX.Name.str.split(',').str[1]
     dataX.iloc[:, 1] = pd.DataFrame(got).Name.str.split('\s+').str[1]
@@ -45,23 +42,25 @@ def dataCleaning(dataset):
     # set for unique values of the title, and transform into list
     title_mean_age.append(list(set(dataX.Name)))
     title_mean_age.append(dataX.groupby('Name').Age.mean())
-    print("title_mean_age: ")
-    print(title_mean_age)
+    # print("title_mean_age: ")
+    # print(title_mean_age)
     #------------------------------------------------------------------------------------------------------
 
     #------------------ Fill the missing Ages ---------------------------
     n_traning = dataset.shape[0]  # number of rows
+    print("rows: ", n_traning)
     n_titles = len(title_mean_age[1])
     for i in range(0, n_traning):
-        # if dataX.Age[i].isnan()
-        if np.isnan(dataX.Age[i]):
+        # if np.isnan(dataX.Age[i]):
+        if pd.isnull(dataX.at[i, 'Age']):
             for j in range(0, n_titles):
                 if dataX.Name[i] == title_mean_age[0][j]:
-                    dataX.Age[i] = title_mean_age[1][j]
+                    # dataX.Age[i] = title_mean_age[1][j]
+                    dataX.at[i, 'Age'] = title_mean_age[1][j]
 
     #--------------------------------------------------------------------
     dataX = dataX.drop(['Name'], axis=1)
-    return dataX, resY
+    return dataX
 
 
 def Validation(dataX, resY):
@@ -70,45 +69,24 @@ def Validation(dataX, resY):
     # # Fitting Logistic Regression to the Training set
     # from sklearn.linear_model import LogisticRegression
     # classifier = LogisticRegression(penalty='l2',random_state = 0)
-    #
-    # # Applying k-Fold Cross Validation
-    # from sklearn.model_selection import cross_val_score
-    # accuracies = cross_val_score(estimator = classifier, X=X , y=y , cv = 10)
-    # print("Logistic Regression:\n Accuracy:", accuracies.mean(), "+/-", accuracies.std(),"\n")
 
     #-----------------------------------K-NN --------------------------------------------------
 
     # # Fitting K-NN to the Training set
     # from sklearn.neighbors import KNeighborsClassifier
     # classifier = KNeighborsClassifier(n_neighbors = 9, metric = 'minkowski', p = 2)
-    #
-    #
-    # # Applying k-Fold Cross Validation
-    # from sklearn.model_selection import cross_val_score
-    # accuracies = cross_val_score(estimator = classifier, X=X , y=y , cv = 10)
-    # print("K-NN:\n Accuracy:", accuracies.mean(), "+/-", accuracies.std(),"\n")
 
     #---------------------------------------SVM -------------------------------------------------
 
     # # Fitting Kernel SVM to the Training set
     # from sklearn.svm import SVC
     # classifier = SVC(kernel = 'rbf', random_state = 0)
-    #
-    # # Applying k-Fold Cross Validation
-    # from sklearn.model_selection import cross_val_score
-    # accuracies = cross_val_score(estimator = classifier, X=X , y=y , cv = 10)
-    # print("SVM:\n Accuracy:", accuracies.mean(), "+/-", accuracies.std(),"\n")
 
     #---------------------------------Naive Bayes-------------------------------------------
 
     # Fitting Naive Bayes to the Training set
     # from sklearn.naive_bayes import GaussianNB
     # classifier = GaussianNB()
-    #
-    # # Applying k-Fold Cross Validation
-    # from sklearn.model_selection import cross_val_score
-    # accuracies = cross_val_score(estimator = classifier, X=X , y=y , cv = 10)
-    # print("Naive Bayes:\n Accuracy:", accuracies.mean(), "+/-", accuracies.std(),"\n")
 
     #----------------------------Random Forest------------------------------------------
 
@@ -117,11 +95,6 @@ def Validation(dataX, resY):
     classifier_RF = RandomForestClassifier(n_estimators=100, criterion='entropy', random_state=0)
     classifier_RF.fit(dataX, resY)
     # accuracies = cross_val_score(estimator = classifierRF, X=X , y=y , cv = 10)
-    accuracies = cross_val_score(estimator = classifier_RF, X = dataX, y= resY, cv = 10)
-    print("Random Forest accuracies: ", accuracies.mean(), "+/-", accuracies.std(),"\n")
+    accuracies = cross_val_score(estimator=classifier_RF, X=dataX, y=resY, cv=10)
+    print("Random Forest accuracies: ", accuracies.mean(), "+/-", accuracies.std(), "\n")
     # res = classifier.predict(A).astype(int)
-
-    # Applying k-Fold Cross Validation
-    # from sklearn.model_selection import cross_val_score
-    # accuracies = cross_val_score(estimator = classifier, X=X , y=y , cv = 10)
-    # print("Random Forest:\n Accuracy:", accuracies.mean(), "+/-", accuracies.std())
